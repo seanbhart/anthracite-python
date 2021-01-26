@@ -47,6 +47,7 @@ class Notion:
         # If the Notion already exists, update existing data,
         # otherwise create a new Notion object.
         docs = client.collection(settings.Firestore.collection_notion) \
+            .where(u'host', u'==', self.host) \
             .where(u'host_id', u'==', self.host_id) \
             .get()
         if len(docs) > 0:

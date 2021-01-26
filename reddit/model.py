@@ -6,7 +6,7 @@ def notion_from_submission(data: dict) -> model.Notion:
     Returns Notion object or None if filtered out.
     """
     # Ensure the submission has not been banned
-    if data["banned_by"] is not None:
+    if 'banned_by' in data and data['banned_by'] is not None:
         return None
 
     text = data['title']
@@ -31,7 +31,7 @@ def notion_from_comment(data: dict) -> model.Notion:
     Returns Notion object or None if filtered out.
     """
     # Ensure the submission has not been banned
-    if data["banned_by"] is not None:
+    if 'banned_by' in data and data['banned_by'] is not None:
         return None
 
     return model.Notion(host="reddit",
@@ -42,4 +42,5 @@ def notion_from_comment(data: dict) -> model.Notion:
                         downvotes=data['downs'],
                         award_count=data['total_awards_received'],
                         parent=data['parent_id'],
+                        associated=[data['parent_id']],
                         )

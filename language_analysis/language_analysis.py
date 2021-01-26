@@ -4,7 +4,16 @@ from google.cloud import language_v1
 from utils import settings
 
 
-def sentiment_analysis():
+class Sentiment:
+    def __init__(self,
+                 sentiment: float,
+                 magnitude: float,
+                 ):
+        self.sentiment = sentiment
+        self.magnitude = magnitude
+
+
+def all_sentiment_analysis() -> None:
     # Get the Notions without language analysis
     firestore_client = firestore.Client()
     language_client = language_v1.LanguageServiceClient()
@@ -29,5 +38,12 @@ def sentiment_analysis():
         }, merge=True)
 
 
+def sentiment_analysis(text: str) -> Sentiment:
+    language_client = language_v1.LanguageServiceClient()
+    document = language_v1.Document(content=text, type_=language_v1.Document.Type.PLAIN_TEXT)
+    sentiment = language_client.analyze_sentiment(request={'document': document}).document_sentiment
+    return Sentiment(sentiment=sentiment.score, magnitude=sentiment.magnitude)
+
+
 if __name__ == '__main__':
-    sentiment_analysis()
+    all_sentiment_analysis()

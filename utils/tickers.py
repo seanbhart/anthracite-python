@@ -5,6 +5,25 @@ from PyDictionary import PyDictionary
 from utils import settings
 
 
+class Ticker:
+    def __init__(self,
+                 ticker: str,
+                 status: int,
+                 name: str,
+                 exchange: str,
+                 ):
+        self.ticker = ticker
+        self.status = status
+        self.name = name
+        self.exchange = exchange
+
+    def __init__(self, data: dict):
+        self.ticker = data['ticker']
+        self.status = data['status']
+        self.name = data['name']
+        self.exchange = data['exchange']
+
+
 def read_tickers(filepath: str) -> list:
     with open(filepath) as csv_file:
         csv_reader = csv.reader(csv_file, delimiter=',')
@@ -60,23 +79,22 @@ def get_tickers() -> list:
         .stream()
     tickers = []
     for doc in docs:
-        tickers.append(doc.to_dict())
+        tickers.append(Ticker(doc.to_dict()))
     return tickers
 
 
-def check_for_ticker(text: str, tickers: list) -> dict:
+def check_for_ticker(text: str, tickers: [Ticker]) -> [Ticker]:
     if len(text) < 1:
         return None
+    tickers_found = []
     for t in tickers:
-        t_index = text.rfind(" " + t['ticker'] + " ")
-        t_index2 = text.rfind("$" + t['ticker'] + " ")
-        if t_index >= 0:
-            print("::" + text[t_index + 1:t_index + len(t['ticker']) + 1] + "::")
-            print("::" + text[t_index - 10:t_index + 10] + "::")
-        if t_index2 >= 0:
-            print("::" + text[t_index2 + 1:t_index2 + len(t['ticker']) + 1] + "::")
-            print("::" + text[t_index2 - 10:t_index2 + 10] + "::")
-    return {}
+        t_index = text.rfind(" " + t.ticker + " ")
+        t_index2 = text.rfind("$" + t.ticker + " ")
+        if t_index >= 0 or t_index2 >= 0:
+            tickers_found.append(t)
+    if len(tickers_found) == 0:
+        return None
+    return tickers_found
 
 
 if __name__ == '__main__':

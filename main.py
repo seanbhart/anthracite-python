@@ -1,54 +1,130 @@
-import os
 import logging
-import praw
 from dotenv import load_dotenv
-from google.cloud import language_v1
 
+import reddit.model as rmodel
+from reddit import reddit as red
+from language_analysis.language_analysis import sentiment_analysis
 from utils import tickers
 
 
-def test():
+def get_reddit_top_breadth(subreddit: str, recency: str, layers: int):
+    print(f"GET SUBREDDIT {subreddit} TOP POSTS BY BREADTH IN LAST {recency}")
     ticker_list = tickers.get_tickers()
-    reddit_praw = praw.Reddit(
-        client_id=os.getenv("REDDIT_CLIENT_ID"),
-        client_secret=os.getenv("REDDIT_CLIENT_SECRET"),
-        user_agent=os.getenv("REDDIT_USER_AGENT")
-    )
-    subreddit = reddit_praw.subreddit("wallstreetbets")
+    notions = []
+    i = 0
+    for submission in red.get_top(subreddit=subreddit, recency=recency):
+        notion = rmodel.notion_from_submission(submission.__dict__)
+        found_tickers = tickers.check_for_ticker(notion.text, ticker_list)
+        if found_tickers is not None:
+            notion.tickers = list(map(lambda x: x.ticker, found_tickers))
+            sentiment = sentiment_analysis(notion.text)
+            notion.sentiment = sentiment.sentiment
+            notion.magnitude = sentiment.magnitude
+            notion.upload()
+            notions.append(notion)
 
-    client = language_v1.LanguageServiceClient()
-    # print(subreddit.display_name)  # output: redditdev
-    # print(subreddit.title)  # output: reddit development
-    # print(subreddit.description)  # output: a subreddit for discussion of ...
-    for submission in subreddit.top("day"):
-        # print(dir(submission))
-        # pprint.pprint(vars(submission))
-        # print(submission.title)
-        s_text = submission.selftext
-        if len(s_text) > 0:
-            # Check whether a ticker is mentioned in the text
-            tickers_found = []
-            for t in ticker_list:
-                # Only use ticker with more than one letter and
-                # add spaces before and after the ticker
-                if len(t) > 1:
-                    t_index = s_text.rfind(" " + t['ticker'] + " ")
-                    t_index2 = s_text.rfind("$" + t['ticker'] + " ")
-                    if t_index >= 0 or t_index2 >= 0:
-                        tickers_found.append(t['ticker'])
-            document = language_v1.Document(content=s_text, type_=language_v1.Document.Type.PLAIN_TEXT)
-            sentiment = client.analyze_sentiment(request={'document': document}).document_sentiment
-            # print("Text: {}".format(s_text))
-            print("{},{},{},{}".format(",".join(tickers_found), sentiment.score, sentiment.magnitude, s_text))
+        # Reddit cannot serve too many comments
+        if submission.num_comments > 90000:
+            continue
 
-        # all_comments = submission.comments.list()
-        # for comment in all_comments:
-        #     print(comment.body)
+        submission.comments.replace_more(limit=layers)
+        for comment in submission.comments.list():
+            notion2 = rmodel.notion_from_comment(comment.__dict__)
+            found_tickers2 = tickers.check_for_ticker(notion2.text, ticker_list)
+            if found_tickers2 is not None:
+                notion2.tickers = list(map(lambda x: x.ticker, found_tickers2))
+                sentiment = sentiment_analysis(notion2.text)
+                notion2.sentiment = sentiment.sentiment
+                notion2.magnitude = sentiment.magnitude
+                notion2.upload()
+                notions.append(notion2)
+        i += 1
+        if i > 1:
+            break
+    for n in notions:
+        print(n.__dict__)
+
+
+def process_notion(notion, ticker_list):
+    found_tickers = tickers.check_for_ticker(notion.text, ticker_list)
+    if found_tickers is None:
+        return
+    notion.tickers = list(map(lambda x: x.ticker, found_tickers))
+    sentiment = sentiment_analysis(notion.text)
+    notion.sentiment = sentiment.sentiment
+    notion.magnitude = sentiment.magnitude
+    # notion.upload()
+    return notion
+
+
+def get_reddit_top_depth(subreddit: str, recency: str, layers: int):
+    print(f"GET SUBREDDIT {subreddit} TOP POSTS BY DEPTH IN LAST {recency}")
+    ticker_list = tickers.get_tickers()
+    notions = []
+    i = 0
+    for submission in red.get_top(subreddit=subreddit, recency=recency):
+        notion = rmodel.notion_from_submission(submission.__dict__)
+        # found_tickers = tickers.check_for_ticker(notion.text, ticker_list)
+        # if found_tickers is not None:
+        #     notion.tickers = list(map(lambda x: x.ticker, found_tickers))
+        #     sentiment = sentiment_analysis(notion.text)
+        #     notion.sentiment = sentiment.sentiment
+        #     notion.magnitude = sentiment.magnitude
+        #     notion.upload()
+        notion_p = process_notion(notion, ticker_list)
+        if notion_p:
+            notions.append(notion_p)
+
+        # Reddit cannot serve too many comments
+        if submission.num_comments > 90000:
+            continue
+
+        submission.comments.replace_more(limit=layers)
+        for comment in submission.comments:
+            notion2 = rmodel.notion_from_comment(comment.__dict__)
+            print(f"submission comment: {comment}")
+            # notions.append(notion2)
+            notion_p2 = process_notion(notion2, ticker_list)
+            if notion_p2:
+                notions.append(notion_p2)
+            _, comment_notions = get_replies(comment, ticker_list)
+            notions.extend(comment_notions)
+
+        print(i)
+        i += 1
+        if i > 1:
+            break
+    for n in notions:
+        print(n)
+
+
+def get_replies(comment, ticker_list):
+    print(f"get_replies comment: {comment}")
+    comment_list = []
+    notion_list = []
+    for r1 in comment.replies:
+        notion = rmodel.notion_from_comment(r1.__dict__)
+        comment_list.append(r1)
+        notion_p = process_notion(notion, ticker_list)
+        if notion_p:
+            notion_list.append(notion_p)
+        reply_comments, reply_notions = get_replies(r1, ticker_list)
+        print(f"get_replies reply: {r1}, reply replies: {reply_comments}")
+        for r2 in reply_comments:
+            print(r2)
+            notion2 = rmodel.notion_from_comment(r2.__dict__)
+            comment_list.append(r2)
+            notion_p2 = process_notion(notion2, ticker_list)
+            if notion_p2:
+                notion_list.append(notion_p2)
+    print(f"get_replies comment: {comment}, reply_list: {comment_list}")
+    return comment_list, notion_list
 
 
 def main():
-    print("START")
-    test()
+    # get_reddit_top_breadth(subreddit="wallstreetbets", recency="day", layers=0)
+    # get_reddit_top_breadth(subreddit="pennystocks", recency="day", layers=0)
+    get_reddit_top_depth(subreddit="wallstreetbets", recency="hour", layers=2)
 
 
 debug = False
