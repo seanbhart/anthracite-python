@@ -1,43 +1,45 @@
+from anthracite import anthracite
 
 
-class Submission:
-    def __init__(self,
-                 reddit_id: str,
-                 title: str,
-                 text: str,
-                 num_comments: int,
-                 upvote_ratio: float,
-                 ups: int,
-                 total_awards_received: int,
-                 created_utc: float,
-                 media: str,
-                 banned_by: str,
-                 category: str,
-                 parent: str = None
-                 ):
-        self.reddit_id = reddit_id
-        self.title = title
-        self.text = text
-        self.num_comments = num_comments
-        self.upvote_ratio = upvote_ratio
-        self.ups = ups
-        self.total_awards_received = total_awards_received
-        self.created_utc = created_utc
-        self.media = media
-        self.banned_by = banned_by
-        self.category = category
-        self.parent = parent
+def notion_from_submission(data: dict) -> anthracite.Notion:
+    """Create a Notion object from a Reddit Submission object.
+    Returns Notion object or None if filtered out.
+    """
+    # Ensure the submission has not been banned
+    if data["banned_by"] is not None:
+        return None
 
-    def from_dict(self, data: dict):
-        self.reddit_id = data['reddit_id']
-        self.title = data['title']
-        self.text = data['text']
-        self.num_comments = data['num_comments']
-        self.upvote_ratio = data['upvote_ratio']
-        self.ups = data['ups']
-        self.total_awards_received = data['total_awards_received']
-        self.created_utc = data['created_utc']
-        self.media = data['media']
-        self.banned_by = data['banned_by']
-        self.category = data['category']
-        self.parent = data['parent']
+    text = data['title']
+    if 'text' in data:
+        text = data['title'] + "\n\n" + data['text']
+
+    return anthracite.Notion(host="reddit",
+                             host_id=data['id'],
+                             text=text,
+                             created=data['created_utc'],
+                             upvotes=data['ups'],
+                             downvotes=data['downs'],
+                             award_count=data['total_awards_received'],
+                             response_count=data['num_comments'],
+                             media_link=data['media'],
+                             category=data['category'],
+                             )
+
+
+def notion_from_comment(data: dict) -> anthracite.Notion:
+    """Create a Notion object from a Reddit Comment object.
+    Returns Notion object or None if filtered out.
+    """
+    # Ensure the submission has not been banned
+    if data["banned_by"] is not None:
+        return None
+
+    return anthracite.Notion(host="reddit",
+                             host_id=data['id'],
+                             text=data['body'],
+                             created=data['created_utc'],
+                             upvotes=data['ups'],
+                             downvotes=data['downs'],
+                             award_count=data['total_awards_received'],
+                             parent=data['parent_id'],
+                             )

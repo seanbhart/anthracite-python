@@ -4,17 +4,18 @@ import praw
 from dotenv import load_dotenv
 from google.cloud import language_v1
 
+import reddit
 from utils import tickers
 
 
 def test():
     ticker_list = tickers.get_tickers()
-    reddit = praw.Reddit(
+    reddit_praw = praw.Reddit(
         client_id=os.getenv("REDDIT_CLIENT_ID"),
         client_secret=os.getenv("REDDIT_CLIENT_SECRET"),
         user_agent=os.getenv("REDDIT_USER_AGENT")
     )
-    subreddit = reddit.subreddit("wallstreetbets")
+    subreddit = reddit_praw.subreddit("wallstreetbets")
 
     client = language_v1.LanguageServiceClient()
     # print(subreddit.display_name)  # output: redditdev
@@ -51,8 +52,8 @@ def test():
 
 def main():
     print("START")
-    test()
-    # print(get_tickers())
+    # test()
+    reddit.update()
 
 
 debug = False

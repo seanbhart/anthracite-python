@@ -3,6 +3,8 @@ import logging
 import praw
 from dotenv import load_dotenv
 
+from model import notion_from_submission, notion_from_comment
+
 
 def update(subreddit: str, recency: str):
     reddit = praw.Reddit(
@@ -13,21 +15,15 @@ def update(subreddit: str, recency: str):
     subreddit = reddit.subreddit(subreddit)
 
     for submission in subreddit.top(recency):
-        # print(dir(submission))
-        # print(vars(submission))
-        data = {
-            'reddit_id': submission.id,
-            'title': submission.title,
-            'text': submission.selftext
-        }
+        notion_from_submission(submission.__dict__).upload()
 
-        if submission.num_comments < 90000:
-            submission.comments.replace_more(limit=2)
-            for top_level_comment in submission.comments.list():
-                # print(top_level_comment.body)
-                print(top_level_comment.__dict__)
-                break
-            break
+        # Reddit cannot serve too many comments
+        if submission.num_comments > 90000:
+            continue
+
+        submission.comments.replace_more(limit=2)
+        for comment in submission.comments.list():
+            notion_from_comment(comment.__dict__).upload()
 
 
 if __name__ == '__main__':
