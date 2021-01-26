@@ -1,7 +1,7 @@
-from anthracite import anthracite
+from anthracite import model
 
 
-def notion_from_submission(data: dict) -> anthracite.Notion:
+def notion_from_submission(data: dict) -> model.Notion:
     """Create a Notion object from a Reddit Submission object.
     Returns Notion object or None if filtered out.
     """
@@ -13,20 +13,20 @@ def notion_from_submission(data: dict) -> anthracite.Notion:
     if 'text' in data:
         text = data['title'] + "\n\n" + data['text']
 
-    return anthracite.Notion(host="reddit",
-                             host_id=data['id'],
-                             text=text,
-                             created=data['created_utc'],
-                             upvotes=data['ups'],
-                             downvotes=data['downs'],
-                             award_count=data['total_awards_received'],
-                             response_count=data['num_comments'],
-                             media_link=data['media'],
-                             category=data['category'],
-                             )
+    return model.Notion(host="reddit",
+                        host_id=data['id'],
+                        text=text,
+                        created=data['created_utc'],
+                        upvotes=data['ups'],
+                        downvotes=data['downs'],
+                        award_count=data['total_awards_received'],
+                        response_count=data['num_comments'],
+                        media_link=data['media'],
+                        category=data['category'],
+                        )
 
 
-def notion_from_comment(data: dict) -> anthracite.Notion:
+def notion_from_comment(data: dict) -> model.Notion:
     """Create a Notion object from a Reddit Comment object.
     Returns Notion object or None if filtered out.
     """
@@ -34,12 +34,12 @@ def notion_from_comment(data: dict) -> anthracite.Notion:
     if data["banned_by"] is not None:
         return None
 
-    return anthracite.Notion(host="reddit",
-                             host_id=data['id'],
-                             text=data['body'],
-                             created=data['created_utc'],
-                             upvotes=data['ups'],
-                             downvotes=data['downs'],
-                             award_count=data['total_awards_received'],
-                             parent=data['parent_id'],
-                             )
+    return model.Notion(host="reddit",
+                        host_id=data['id'],
+                        text=data['body'],
+                        created=data['created_utc'],
+                        upvotes=data['ups'],
+                        downvotes=data['downs'],
+                        award_count=data['total_awards_received'],
+                        parent=data['parent_id'],
+                        )

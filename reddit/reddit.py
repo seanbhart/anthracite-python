@@ -4,6 +4,7 @@ import praw
 from dotenv import load_dotenv
 
 from model import notion_from_submission, notion_from_comment
+from utils import tickers
 
 
 def update(subreddit: str, recency: str):
@@ -14,8 +15,13 @@ def update(subreddit: str, recency: str):
     )
     subreddit = reddit.subreddit(subreddit)
 
+    ticker_list = tickers.get_tickers()
+    i = 0
     for submission in subreddit.top(recency):
-        notion_from_submission(submission.__dict__).upload()
+        i += 1
+        # notion_from_submission(submission.__dict__).upload()
+        notion = notion_from_submission(submission.__dict__)
+        found_tickers = tickers.check_for_ticker(notion.text, ticker_list)
 
         # Reddit cannot serve too many comments
         if submission.num_comments > 90000:
@@ -23,7 +29,10 @@ def update(subreddit: str, recency: str):
 
         submission.comments.replace_more(limit=2)
         for comment in submission.comments.list():
-            notion_from_comment(comment.__dict__).upload()
+            # notion_from_comment(comment.__dict__).upload()
+            notion2 = notion_from_comment(comment.__dict__)
+            found_tickers = tickers.check_for_ticker(notion2.text, ticker_list)
+    print(i)
 
 
 if __name__ == '__main__':

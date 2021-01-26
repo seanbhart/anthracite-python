@@ -19,7 +19,7 @@ class Notion:
                  associated: [str] = [],
                  sentiment: float = 0.0,
                  magnitude: float = 0.0,
-                 ticker: str = None,
+                 tickers: [str] = [],
                  confidence: float = 0.0,
                  db_id: str = None,
                  ):
@@ -37,7 +37,7 @@ class Notion:
         self.associated = associated
         self.sentiment = sentiment
         self.magnitude = magnitude
-        self.ticker = ticker
+        self.tickers = tickers
         self.confidence = confidence
         self.db_id = db_id
 
