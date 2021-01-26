@@ -14,7 +14,7 @@ class Notion:
                  award_count: int = 0,
                  response_count: int = 0,
                  media_link: str = None,
-                 category: str = None,
+                 categories: [str] = [],
                  parent: str = None,
                  associated: [str] = [],
                  sentiment: float = 0.0,
@@ -32,7 +32,7 @@ class Notion:
         self.award_count = award_count
         self.response_count = response_count
         self.media_link = media_link
-        self.category = category
+        self.categories = categories
         self.parent = parent
         self.associated = associated
         self.sentiment = sentiment
