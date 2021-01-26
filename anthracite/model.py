@@ -54,4 +54,4 @@ class Notion:
             notion_doc = client.collection(settings.Firestore.collection_notion).document(docs[0].id)
         else:
             notion_doc = client.collection(settings.Firestore.collection_notion).document()
-        notion_doc.set(self.__dict__)
+        notion_doc.set(self.__dict__, merge=True)
