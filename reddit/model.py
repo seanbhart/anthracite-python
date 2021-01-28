@@ -20,7 +20,7 @@ def notion_from_submission(data: dict) -> model.Notion:
                         upvotes=data['ups'],
                         downvotes=data['downs'],
                         award_count=data['total_awards_received'],
-                        response_count=data['num_comments'],
+                        response_count=data['num_comments']+data['ups']+data['downs']+data['total_awards_received'],
                         media_link=data['media'],
                         categories=[data['category'], data['subreddit_name_prefixed']],
                         )
@@ -41,6 +41,7 @@ def notion_from_comment(data: dict) -> model.Notion:
                         upvotes=data['ups'],
                         downvotes=data['downs'],
                         award_count=data['total_awards_received'],
+                        response_count=data['ups'] + data['downs'] + data['total_awards_received'],
                         parent=data['parent_id'],
                         associated=[data['parent_id']],
                         categories=[data['subreddit_name_prefixed']],

@@ -2,26 +2,8 @@ import csv
 from google.cloud import firestore
 from PyDictionary import PyDictionary
 
+from anthracite.model import Ticker, Notion
 from utils import settings
-
-
-class Ticker:
-    def __init__(self,
-                 ticker: str,
-                 status: int,
-                 name: str,
-                 exchange: str,
-                 ):
-        self.ticker = ticker
-        self.status = status
-        self.name = name
-        self.exchange = exchange
-
-    def __init__(self, data: dict):
-        self.ticker = data['ticker']
-        self.status = data['status']
-        self.name = data['name']
-        self.exchange = data['exchange']
 
 
 def read_tickers(filepath: str) -> list:
@@ -55,16 +37,27 @@ def load_tickers(filepath: str):
         }, merge=True)
 
 
+def transform_tickers():
+    client = firestore.Client()
+    docs = client.collection(settings.Firestore.collection_ticker) \
+        .where(u'status', u'==', 0) \
+        .get()
+    for doc in docs:
+        ticker_doc = client.collection(settings.Firestore.collection_ticker).document(doc.id)
+        ticker_doc.set({
+            u'status': 2
+        }, merge=True)
+
+
 def filter_tickers():
     client = firestore.Client()
     docs = client.collection(settings.Firestore.collection_ticker) \
         .where(u'status', u'==', 1) \
         .stream()
     for doc in docs:
-        ticker_dict = doc.to_dict()
-        dictionary = PyDictionary()
-        meaning = dictionary.meaning(ticker_dict['ticker'], disable_errors=True)
-        if meaning is not None or len(ticker_dict['ticker']) < 2:
+        ticker = Ticker(data=doc.to_dict())
+        meaning = ticker_meaning(ticker)
+        if meaning is not None or len(ticker.ticker) < 2:
             # print(f"{ticker_dict['ticker']}: {dictionary.meaning(ticker_dict['ticker'])}")
             ticker_doc = client.collection(settings.Firestore.collection_ticker).document(doc.id)
             ticker_doc.set({
@@ -72,15 +65,20 @@ def filter_tickers():
             }, merge=True)
 
 
+def ticker_meaning(ticker: Ticker):
+    dictionary = PyDictionary()
+    return dictionary.meaning(ticker.ticker, disable_errors=True)
+
+
 def get_tickers() -> list:
     client = firestore.Client()
     docs = client.collection(settings.Firestore.collection_ticker) \
-        .where(u'status', u'==', 1) \
+        .where(u'status', u'>', 0) \
         .stream()
     tickers = []
     for doc in docs:
         tickers.append(Ticker(doc.to_dict()))
-    return tickers
+    return list(set(tickers))
 
 
 def check_for_ticker(text: str, tickers: [Ticker]) -> [Ticker]:
@@ -88,16 +86,35 @@ def check_for_ticker(text: str, tickers: [Ticker]) -> [Ticker]:
         return None
     tickers_found = []
     for t in tickers:
-        t_index = text.rfind(" " + t.ticker + " ")
-        t_index2 = text.rfind("$" + t.ticker + " ")
-        if t_index >= 0 or t_index2 >= 0:
-            tickers_found.append(t)
+        if t.status == 1:
+            if text.rfind(" " + t.ticker + " ") >= 0 or text.rfind("$" + t.ticker + " ") >= 0:
+                tickers_found.append(t)
+        elif t.status == 2:
+            if text.rfind("$" + t.ticker + " ") >= 0:
+                tickers_found.append(t)
     if len(tickers_found) == 0:
         return None
     return tickers_found
 
 
+def update_tickers_with_notion(notion: Notion):
+    client = firestore.Client()
+    ticker_docs = client.collection(settings.Firestore.collection_ticker) \
+        .where(u'ticker', u'in', notion.tickers) \
+        .get()
+
+    # For each ticker in the Notion, update the ticker's latest timestamp
+    # with the Notion's created time
+    for td in ticker_docs:
+        ticker_doc_ref = client.collection(settings.Firestore.collection_ticker).document(td.id)
+        ticker_doc_ref.set({
+            'latest_notion': notion.created
+        }, merge=True)
+
+
 if __name__ == '__main__':
     # load_tickers('../data/tickers.csv')
     # print(get_tickers())
-    filter_tickers()
+    # filter_tickers()
+    transform_tickers()
+

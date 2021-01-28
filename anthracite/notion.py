@@ -1,9 +1,13 @@
+import time
+from google.cloud import firestore
 from language_analysis.language_analysis import sentiment_analysis
-from utils import tickers
+
+from anthracite.ticker import check_for_ticker
+# from utils import settings
 
 
 def process_notion(notion, ticker_list):
-    found_tickers = tickers.check_for_ticker(notion.text, ticker_list)
+    found_tickers = check_for_ticker(notion.text, ticker_list)
     if found_tickers is None:
         return
     notion.tickers = list(map(lambda x: x.ticker, found_tickers))

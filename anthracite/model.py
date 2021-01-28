@@ -1,6 +1,26 @@
 from google.cloud import firestore
 
+from anthracite import ticker
 from utils import settings
+
+
+class Ticker:
+    def __init__(self,
+                 ticker: str,
+                 status: int,
+                 name: str,
+                 exchange: str,
+                 ):
+        self.ticker = ticker
+        self.status = status
+        self.name = name
+        self.exchange = exchange
+
+    def __init__(self, data: dict):
+        self.ticker = data['ticker']
+        self.status = data['status']
+        self.name = data['name']
+        self.exchange = data['exchange']
 
 
 class Notion:
@@ -51,7 +71,12 @@ class Notion:
             .where(u'host_id', u'==', self.host_id) \
             .get()
         if len(docs) > 0:
-            notion_doc = client.collection(settings.Firestore.collection_notion).document(docs[0].id)
+            notion_doc_ref = client.collection(settings.Firestore.collection_notion).document(docs[0].id)
         else:
-            notion_doc = client.collection(settings.Firestore.collection_notion).document()
-        notion_doc.set(self.__dict__, merge=True)
+            notion_doc_ref = client.collection(settings.Firestore.collection_notion).document()
+        # Remove all None values from the dict before uploading
+        filtered = {k: v for k, v in self.__dict__.items() if v is not None}
+        notion_doc_ref.set(filtered, merge=True)
+
+        # Update the tickers associated with the Notion to show new data was added
+        ticker.update_tickers_with_notion(self)

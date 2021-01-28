@@ -1,11 +1,12 @@
 import os
+import logging
 from statistics import mean
 import praw
+from prawcore.exceptions import Forbidden, ResponseException
 from dotenv import load_dotenv
 
-from anthracite import anthracite
+from anthracite import ticker
 from reddit.model import notion_from_submission, notion_from_comment
-from utils import tickers
 
 
 def update(subreddit: str, recency: str):
@@ -16,13 +17,15 @@ def update(subreddit: str, recency: str):
     )
     subreddit = reddit.subreddit(subreddit)
 
-    ticker_list = tickers.get_tickers()
+    ticker_list = ticker.get_tickers()
     i = 0
     for submission in subreddit.top(recency):
         i += 1
+        # if submission.stickied:
+        #     continue
         # notion_from_submission(submission.__dict__).upload()
         notion = notion_from_submission(submission.__dict__)
-        found_tickers = tickers.check_for_ticker(notion.text, ticker_list)
+        found_tickers = ticker.check_for_ticker(notion.text, ticker_list)
 
         # Reddit cannot serve too many comments
         if submission.num_comments > 90000:
@@ -32,7 +35,7 @@ def update(subreddit: str, recency: str):
         for comment in submission.comments.list():
             # notion_from_comment(comment.__dict__).upload()
             notion2 = notion_from_comment(comment.__dict__)
-            found_tickers = tickers.check_for_ticker(notion2.text, ticker_list)
+            found_tickers = ticker.check_for_ticker(notion2.text, ticker_list)
     print(i)
 
 
@@ -51,14 +54,14 @@ def get_replies(comment, ticker_list):
     for r1 in comment.replies:
         notion = notion_from_comment(r1.__dict__)
         comment_list.append(r1)
-        notion_p = anthracite.process_notion(notion, ticker_list)
+        notion_p = notion.process_notion(notion, ticker_list)
         if notion_p:
             notion_list.append(notion_p)
         reply_comments, reply_notions = get_replies(r1, ticker_list)
         for r2 in reply_comments:
             notion2 = notion_from_comment(r2.__dict__)
             comment_list.append(r2)
-            notion_p2 = anthracite.process_notion(notion2, ticker_list)
+            notion_p2 = notion.process_notion(notion2, ticker_list)
             if notion_p2:
                 notion_list.append(notion_p2)
     return comment_list, notion_list
@@ -66,10 +69,12 @@ def get_replies(comment, ticker_list):
 
 def get_reddit_top_depth(subreddit: str, recency: str, layers: int):
     print(f"GET SUBREDDIT {subreddit} TOP POSTS BY DEPTH IN LAST {recency}")
-    ticker_list = tickers.get_tickers()
+    ticker_list = ticker.get_tickers()
     notions = []
     i = 0
     for submission in get_top(subreddit=subreddit, recency=recency):
+        # if submission.stickied:
+        #     continue
         notion = notion_from_submission(submission.__dict__)
         # found_tickers = tickers.check_for_ticker(notion.text, ticker_list)
         # if found_tickers is not None:
@@ -78,7 +83,7 @@ def get_reddit_top_depth(subreddit: str, recency: str, layers: int):
         #     notion.sentiment = sentiment.sentiment
         #     notion.magnitude = sentiment.magnitude
         #     notion.upload()
-        notion_p = anthracite.process_notion(notion, ticker_list)
+        notion_p = notion.process_notion(notion, ticker_list)
         if notion_p:
             notions.append(notion_p)
 
@@ -92,7 +97,7 @@ def get_reddit_top_depth(subreddit: str, recency: str, layers: int):
         for comment in submission.comments:
             notion2 = notion_from_comment(comment.__dict__)
             # print(f"submission comment: {comment}")
-            notion_p2 = anthracite.process_notion(notion2, ticker_list)
+            notion_p2 = notion.process_notion(notion2, ticker_list)
             if notion_p2:
                 notions.append(notion_p2)
             _, comment_notions, sentiment_c, magnitude_c = get_replies_with_sentiment(comment, ticker_list)
@@ -126,7 +131,7 @@ def get_replies_with_sentiment(comment, ticker_list):
         for r2 in reply_comments:
             notion2 = notion_from_comment(r2.__dict__)
             comment_list.append(r2)
-            notion_p2 = anthracite.process_notion(notion2, ticker_list)
+            notion_p2 = notion.process_notion(notion2, ticker_list)
             if notion_p2:
                 notion_list.append(notion_p2)
                 sentiment_r1_all.append(notion_p2.sentiment)
@@ -134,7 +139,7 @@ def get_replies_with_sentiment(comment, ticker_list):
 
         notion = notion_from_comment(r1.__dict__)
         comment_list.append(r1)
-        notion_p = anthracite.process_notion(notion, ticker_list)
+        notion_p = notion.process_notion(notion, ticker_list)
         if notion_p:
             notion_list.append(notion_p)
             sentiment_r1_final = notion_p.sentiment
