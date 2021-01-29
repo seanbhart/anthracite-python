@@ -1,6 +1,5 @@
 from google.cloud import firestore
 
-from anthracite import ticker
 from utils import settings
 
 
@@ -78,5 +77,19 @@ class Notion:
         filtered = {k: v for k, v in self.__dict__.items() if v is not None}
         notion_doc_ref.set(filtered, merge=True)
 
-        # Update the tickers associated with the Notion to show new data was added
-        ticker.update_tickers_with_notion(self)
+        # # Update the tickers associated with the Notion to show new data was added
+        # self.update_tickers()
+
+    def update_tickers(self):
+        client = firestore.Client()
+        ticker_docs = client.collection(settings.Firestore.collection_ticker) \
+            .where(u'ticker', u'in', self.tickers) \
+            .get()
+
+        # For each ticker in the Notion, update the ticker's latest timestamp
+        # with the Notion's created time
+        for td in ticker_docs:
+            ticker_doc_ref = client.collection(settings.Firestore.collection_ticker).document(td.id)
+            ticker_doc_ref.set({
+                'latest_notion': self.created
+            }, merge=True)

@@ -58,10 +58,10 @@ def filter_tickers():
         ticker = Ticker(data=doc.to_dict())
         meaning = ticker_meaning(ticker)
         if meaning is not None or len(ticker.ticker) < 2:
-            # print(f"{ticker_dict['ticker']}: {dictionary.meaning(ticker_dict['ticker'])}")
+            print(f"FILTERING OUT TICKER: {ticker.ticker}")
             ticker_doc = client.collection(settings.Firestore.collection_ticker).document(doc.id)
             ticker_doc.set({
-                u'status': 0
+                u'status': 2
             }, merge=True)
 
 
@@ -97,24 +97,9 @@ def check_for_ticker(text: str, tickers: [Ticker]) -> [Ticker]:
     return tickers_found
 
 
-def update_tickers_with_notion(notion: Notion):
-    client = firestore.Client()
-    ticker_docs = client.collection(settings.Firestore.collection_ticker) \
-        .where(u'ticker', u'in', notion.tickers) \
-        .get()
-
-    # For each ticker in the Notion, update the ticker's latest timestamp
-    # with the Notion's created time
-    for td in ticker_docs:
-        ticker_doc_ref = client.collection(settings.Firestore.collection_ticker).document(td.id)
-        ticker_doc_ref.set({
-            'latest_notion': notion.created
-        }, merge=True)
-
-
 if __name__ == '__main__':
     # load_tickers('../data/tickers.csv')
     # print(get_tickers())
-    # filter_tickers()
-    transform_tickers()
+    filter_tickers()
+    # transform_tickers()
 
