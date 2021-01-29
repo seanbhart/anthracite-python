@@ -1,5 +1,6 @@
 from google.cloud import firestore
 
+from language_analysis.language_analysis import sentiment_analysis
 from utils import settings
 
 
@@ -69,13 +70,18 @@ class Notion:
             .where(u'host', u'==', self.host) \
             .where(u'host_id', u'==', self.host_id) \
             .get()
-        if len(docs) > 0:
-            notion_doc_ref = client.collection(settings.Firestore.collection_notion).document(docs[0].id)
-        else:
+        # DO NOT update old data - this leads to unnecessary writes
+        if len(docs) < 0:
+            # Run language analysis ONLY AFTER knowing this entry will be uploaded -
+            # Google Natural Language analysis can get expensive.
+            sentiment = sentiment_analysis(self.text)
+            self.sentiment = sentiment.sentiment
+            self.magnitude = sentiment.magnitude
             notion_doc_ref = client.collection(settings.Firestore.collection_notion).document()
         # Remove all None values from the dict before uploading
         filtered = {k: v for k, v in self.__dict__.items() if v is not None}
-        notion_doc_ref.set(filtered, merge=True)
+        print(self)
+        # notion_doc_ref.set(filtered) #, merge=True)
 
         # # Update the tickers associated with the Notion to show new data was added
         # self.update_tickers()

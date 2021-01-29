@@ -11,8 +11,8 @@ def process_notion(notion, ticker_list):
     if found_tickers is None:
         return
     notion.tickers = list(map(lambda x: x.ticker, found_tickers))
-    sentiment = sentiment_analysis(notion.text)
-    notion.sentiment = sentiment.sentiment
-    notion.magnitude = sentiment.magnitude
+    # sentiment = sentiment_analysis(notion.text)
+    # notion.sentiment = sentiment.sentiment
+    # notion.magnitude = sentiment.magnitude
     # notion.upload()
     return notion

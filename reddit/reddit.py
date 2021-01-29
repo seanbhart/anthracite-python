@@ -34,18 +34,18 @@ def get_reddit_top_breadth(subreddit: str, recency: str, layers: int):
                 found_tickers2 = ticker.check_for_ticker(notion2.text, ticker_list)
                 if found_tickers2 is not None:
                     notion2.tickers = list(map(lambda x: x.ticker, found_tickers2))
-                    sentiment = sentiment_analysis(notion2.text)
-                    notion2.sentiment = sentiment.sentiment
-                    notion2.magnitude = sentiment.magnitude
+                    # sentiment = sentiment_analysis(notion2.text)
+                    # notion2.sentiment = sentiment.sentiment
+                    # notion2.magnitude = sentiment.magnitude
                     notion2.upload()
 
             notion = notion_from_submission(submission.__dict__)
             found_tickers = ticker.check_for_ticker(notion.text, ticker_list)
             if found_tickers is not None:
                 notion.tickers = list(map(lambda x: x.ticker, found_tickers))
-                sentiment = sentiment_analysis(notion.text)
-                notion.sentiment = sentiment.sentiment
-                notion.magnitude = sentiment.magnitude
+                # sentiment = sentiment_analysis(notion.text)
+                # notion.sentiment = sentiment.sentiment
+                # notion.magnitude = sentiment.magnitude
                 notion.upload()
 
     except Exception as error:

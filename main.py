@@ -19,6 +19,7 @@ subreddits = [
     {'subreddit': "litecoin", 'recency': "hour", 'layers': 10},
     {'subreddit': "LitecoinMarkets", 'recency': "hour", 'layers': 10},
     {'subreddit': "dogecoin", 'recency': "hour", 'layers': 10},
+    {'subreddit': "SatoshiStreetBets", 'recency': "hour", 'layers': 10},
 ]
 
 
