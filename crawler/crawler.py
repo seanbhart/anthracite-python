@@ -20,7 +20,7 @@ base_url = "https://www.reddit.com/r/wallstreetbets/"
 
 
 def post(url) -> dict:
-    logging.debug(f"post: {url}")
+    logging.info(f"post: {url}")
     data = {'url': url}
     try:
         chrome_options = webdriver.ChromeOptions()
@@ -74,7 +74,7 @@ def post(url) -> dict:
 
 
 def wsb():
-    logging.debug(f"wsb: {base_url}")
+    logging.info(f"wsb: {base_url}")
     data = []
     try:
         chrome_options = webdriver.ChromeOptions()
@@ -125,7 +125,7 @@ def wsb():
         logging.error(f"Exception: {error}")
 
     finally:
-        logging.debug("FINISH")
+        logging.info("FINISH")
         print(data)
 
 

@@ -74,7 +74,7 @@ def filter_tickers():
         ticker = Ticker(data=doc.to_dict())
         meaning = ticker_meaning(ticker)
         if meaning is not None or len(ticker.ticker) < 2:
-            logging.debug(f"FILTERING OUT TICKER: {ticker.ticker}")
+            logging.info(f"FILTERING OUT TICKER: {ticker.ticker}")
             ticker_doc = client.collection(settings.Firestore.collection_ticker).document(doc.id)
             ticker_doc.set({
                 u'status': 2
@@ -122,7 +122,7 @@ def check_for_ticker(text: str, tickers: [Ticker]) -> [Ticker]:
 
 if __name__ == '__main__':
     # load_tickers('../data/tickers.csv')
-    # logging.debug(get_tickers())
+    # logging.info(get_tickers())
     filter_tickers()
     # transform_tickers()
 

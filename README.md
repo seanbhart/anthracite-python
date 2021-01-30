@@ -1,4 +1,4 @@
-# Slate Amazon Wishlist Detail Requester
+# Gandalf Notion Gathering Service
 
 NOTE: Google App Engine must be running to access Firestore and
 other Google Cloud features.
@@ -51,3 +51,22 @@ gcloud functions deploy list_created \
   --trigger-event providers/cloud.firestore/eventTypes/document.create \
   --trigger-resource "projects/slate-21/databases/(default)/documents/lists/{list_id}"
 ```
+
+## cron jobs
+Setup a cron job to regularly run the script
+- List current cron jobs: `crontab -l`
+- Edit cron jobs: `crontab -e`
+- Run command every 10 mins: `*/10 * * * * <command>` eg: `*/10 * * * * /path/to/python /path/to/file/main.py > log.txt`
+- Clear exited containers (will accumulate in storage otherwise): `docker rm -v $(docker ps -aq -f 'status=exited')`
+- Insert, save, quit: `i`, `:w`, `:q`
+- Check cron log: `cat /var/spool/mail/ec2-user`
+- Check root cron log: `sudo cat /var/spool/mail/root`
+
+## Linux
+- Check space: `df -h`
+- Check dir size: `sudo du -xhs /*`
+- Check file sizes: `sudo du -x -h / | sort -h | tail -40`
+- Check running services in dir: `sudo lsof +D /var`
+- Stop docker service: `sudo service docker stop`
+- Remove docker resources: `sudo rm -rf /var/lib/docker/`
+- Restart docker: `sudo service docker start`

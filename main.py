@@ -5,12 +5,18 @@ from dotenv import load_dotenv
 
 from reddit import reddit
 
+debug = False
+local = False
+
 
 def main():
+    if local:
+        logging.warning("MAIN CALLED LOCAL")
+    else:
+        logging.warning("MAIN CALLED")
     reddit.process_reddit_breadth()
 
 
-debug = False
 if __name__ == '__main__':
     load_dotenv(dotenv_path="./local/.env")
 
@@ -24,6 +30,9 @@ if __name__ == '__main__':
         logging.basicConfig(format='[%(asctime)s] {%(filename)s:%(lineno)d} - %(name)s - %(levelname)s - %(message)s')
         logging.getLogger().setLevel(logging.DEBUG)
     else:
-        logging.getLogger().setLevel(logging.WARNING)
+        if local:
+            logging.getLogger().setLevel(logging.INFO)
+        else:
+            logging.getLogger().setLevel(logging.WARNING)
 
     main()
