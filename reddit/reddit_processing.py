@@ -1,4 +1,5 @@
 import os
+import logging
 import praw
 from statistics import mean
 
@@ -6,6 +7,9 @@ from reddit.model import notion_from_submission, notion_from_comment
 
 
 def get_top(subreddit: str, recency: str):
+    """The basic praw reddit top submission request.
+    :returns: praw Iterator
+    """
     reddit = praw.Reddit(
         client_id=os.getenv("REDDIT_CLIENT_ID"),
         client_secret=os.getenv("REDDIT_CLIENT_SECRET"),
@@ -14,7 +18,11 @@ def get_top(subreddit: str, recency: str):
     return reddit.subreddit(subreddit).top(recency)
 
 
-def get_replies(comment, ticker_list):
+def get_replies(comment, ticker_list) -> (list, list):
+    """Recursively process all comments in a comment tree.
+    Returns a tuple of two lists, a flattened comment list
+    and a flattened processed Notion list.
+    """
     comment_list = []
     notion_list = []
     for r1 in comment.replies:
@@ -33,7 +41,18 @@ def get_replies(comment, ticker_list):
     return comment_list, notion_list
 
 
-def get_replies_with_sentiment(comment, ticker_list):
+def get_replies_with_sentiment(comment, ticker_list) -> (list, list, float, float):
+    """Recursively process all comments in a comment tree,
+    including sentiment analysis aggregation for the tree.
+    Returns a tuple of two lists and two floats:
+    - flattened comment list
+    - flattened processed Notion list
+    - weighted average sentiment float
+    - weighted average magnitude float
+
+    CAUTION: Sentiment analysis (Google Natural Language) is expensive,
+    and this aggregation method should be used sparingly.
+    """
     comment_list = []
     notion_list = []
     sentiment_all = []
@@ -68,7 +87,7 @@ def get_replies_with_sentiment(comment, ticker_list):
             elif len(magnitude_r1_all) > 1:
                 magnitude_r1_final = mean([notion_p.magnitude, mean(magnitude_r1_all)])
             magnitude_all.append(magnitude_r1_final)
-            print(f"NOTION: {notion_p.host_id}: S: {notion_p.sentiment}, M: {notion_p.magnitude} --- S: {sentiment_r1_final}, M: {magnitude_r1_final} --- TEXT: {notion_p.text}")
+            logging.info(f"NOTION: {notion_p.host_id}: S: {notion_p.sentiment}, M: {notion_p.magnitude} --- S: {sentiment_r1_final}, M: {magnitude_r1_final} --- TEXT: {notion_p.text}")
 
     sentiment_all_final = None
     if len(sentiment_all) == 1:

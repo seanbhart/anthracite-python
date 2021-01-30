@@ -5,6 +5,9 @@ from utils import settings
 
 
 class Ticker:
+    """A db object to retain settings regarding
+    which and how to search for Ticker symbols in text.
+    """
     def __init__(self,
                  ticker: str,
                  status: int,
@@ -24,6 +27,11 @@ class Ticker:
 
 
 class Notion:
+    """A db object mirroring key data components
+    in a praw subreddit submission response. Also
+    includes fields with default values for storing
+    analysis values.
+    """
     def __init__(self,
                  host: str,
                  host_id: str,
@@ -62,6 +70,10 @@ class Notion:
         self.db_id = db_id
 
     def upload(self):
+        """Upload a Notion to the db, but since it might already
+        exist, query for the submission based on the stored id
+        the host passed for this data.
+        """
         client = firestore.Client()
 
         # If the Notion already exists, update existing data,
@@ -70,23 +82,30 @@ class Notion:
             .where(u'host', u'==', self.host) \
             .where(u'host_id', u'==', self.host_id) \
             .get()
+
         # DO NOT update old data - this leads to unnecessary writes
-        if len(docs) < 0:
+        if len(docs) == 0:
             # Run language analysis ONLY AFTER knowing this entry will be uploaded -
             # Google Natural Language analysis can get expensive.
             sentiment = sentiment_analysis(self.text)
             self.sentiment = sentiment.sentiment
             self.magnitude = sentiment.magnitude
             notion_doc_ref = client.collection(settings.Firestore.collection_notion).document()
-        # Remove all None values from the dict before uploading
-        filtered = {k: v for k, v in self.__dict__.items() if v is not None}
-        print(self)
-        # notion_doc_ref.set(filtered) #, merge=True)
 
-        # # Update the tickers associated with the Notion to show new data was added
-        # self.update_tickers()
+            # Remove all None values from the dict before uploading
+            filtered = {k: v for k, v in self.__dict__.items() if v is not None}
+            notion_doc_ref.set(filtered) #, merge=True)
+
+            # # Update the tickers associated with the Notion to show new data was added
+            # NOTE: Jan 29, 2021: No need to update Ticker db objects for now - no client
+            # is currently listening to Ticker objects for updates.
+            # self.update_tickers()
 
     def update_tickers(self):
+        """Update all Tickers found for this Notion to indicate new data
+        has been added for this Ticker. This is useful if a client is
+        listening for changes to Ticker documents.
+        """
         client = firestore.Client()
         ticker_docs = client.collection(settings.Firestore.collection_ticker) \
             .where(u'ticker', u'in', self.tickers) \
