@@ -11,21 +11,24 @@ from reddit.reddit_processing import get_top, get_replies_with_sentiment
 from utils import settings
 
 
-def process_reddit_breadth() -> None:
+def process_reddit_breadth(ticker_list: list) -> None:
     """Recall the subreddits to pull along with their request
     settings. Process all subreddits with a status of 1 (active).
     Traverses comments by breadth.
     """
+    logging.info("process_reddit_breadth START")
     client = firestore.Client()
     doc = client.collection(settings.Firestore.collection_host) \
         .document('reddit') \
         .get()
+
     reddit_doc = doc.to_dict()
     for subreddit in reddit_doc['subreddits']:
         if subreddit['status'] == 1:
             process_subreddit_top_breadth(subreddit=subreddit['subreddit'],
                                           recency=subreddit['recency'],
-                                          layers=subreddit['layers']
+                                          layers=subreddit['layers'],
+                                          ticker_list=ticker_list
                                           )
     logging.warning("REDDIT BREADTH COMPLETE")
 
@@ -35,7 +38,7 @@ def process_reddit_breadth() -> None:
 
 
 # @app.task
-def process_subreddit_top_breadth(subreddit: str, recency: str, layers: int) -> None:
+def process_subreddit_top_breadth(subreddit: str, recency: str, layers: int, ticker_list: list) -> None:
     """Request top subreddit submissions and comments by traversing comments by
     breadth (all 1st layer comments, all 2nd layer comments, etc.). This
     prevents aggregating data up comment layers, but is more likely to gather
@@ -43,7 +46,6 @@ def process_subreddit_top_breadth(subreddit: str, recency: str, layers: int) -> 
     bog down in low quality posts.
     """
     logging.info(f"GET SUBREDDIT {subreddit} TOP POSTS BY BREADTH IN LAST {recency}")
-    ticker_list = ticker.get_tickers()
     try:
         for submission in get_top(subreddit=subreddit, recency=recency):
             # if submission.stickied:
@@ -72,7 +74,7 @@ def process_subreddit_top_breadth(subreddit: str, recency: str, layers: int) -> 
         logging.error(f"Exception: {error}")
 
 
-def process_subreddit_top_depth(subreddit: str, recency: str, layers: int) -> None:
+def process_subreddit_top_depth(subreddit: str, recency: str, layers: int, ticker_list: list) -> None:
     """Request top subreddit submissions and comments by traversing comments by
     depth (stair-step down each comment thread). This allows aggregating data up
     comment layers, like sentiment and total response counts, but it seems to bog
@@ -82,7 +84,6 @@ def process_subreddit_top_depth(subreddit: str, recency: str, layers: int) -> No
     and costs should be considered when deciding to aggregate statistics up comment layers.
     """
     logging.info(f"GET SUBREDDIT {subreddit} TOP POSTS BY DEPTH IN LAST {recency}")
-    ticker_list = ticker.get_tickers()
     notions = []
     i = 0
     try:

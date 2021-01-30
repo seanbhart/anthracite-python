@@ -1,3 +1,4 @@
+import logging
 from google.cloud import firestore
 
 from db_local import db
@@ -94,7 +95,7 @@ class Notion:
 
             # Remove all None values from the dict before uploading
             filtered = {k: v for k, v in self.__dict__.items() if v is not None}
-            notion_doc_ref.set(filtered) #, merge=True)
+            notion_doc_ref.set(filtered)  # , merge=True)
 
             # # Update the tickers associated with the Notion to show new data was added
             # NOTE: Jan 29, 2021: No need to update Ticker db objects for now - no client
@@ -110,6 +111,7 @@ class Notion:
         ticker_docs = client.collection(settings.Firestore.collection_ticker) \
             .where(u'ticker', u'in', self.tickers) \
             .get()
+        logging.info(f"(update_tickers) FIREBASE READ TICKER DOC COUNT: {len(ticker_docs)}")
 
         # For each ticker in the Notion, update the ticker's latest timestamp
         # with the Notion's created time

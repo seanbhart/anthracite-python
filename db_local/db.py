@@ -77,6 +77,7 @@ def reddit_populate():
     docs = client.collection(settings.Firestore.collection_notion) \
         .where(u'host', u'==', 'reddit') \
         .get()
+    logging.info(f"(reddit_populate) FIREBASE READ NOTION DOC COUNT: {len(docs)}")
     # Extract just the host's data id an add to a list
     ids = []
     for doc in docs:

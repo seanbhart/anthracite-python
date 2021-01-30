@@ -32,5 +32,20 @@ def update_db_reddit() -> None:
             {'subreddit': "LitecoinMarkets", 'recency': "hour", 'layers': 10, 'status': 1},
             {'subreddit': "dogecoin", 'recency': "hour", 'layers': 10, 'status': 1},
             {'subreddit': "SatoshiStreetBets", 'recency': "hour", 'layers': 10, 'status': 1},
+            {'subreddit': "investing", 'recency': "hour", 'layers': 10, 'status': 1},
+            {'subreddit': "RobinHood", 'recency': "hour", 'layers': 10, 'status': 1},
+            {'subreddit': "options", 'recency': "hour", 'layers': 10, 'status': 1},
+            {'subreddit': "StockMarket", 'recency': "hour", 'layers': 10, 'status': 1},
+            {'subreddit': "finance", 'recency': "hour", 'layers': 10, 'status': 1},
+            {'subreddit': "CryptoCurrency", 'recency': "hour", 'layers': 10, 'status': 1},
+            {'subreddit': "economy", 'recency': "hour", 'layers': 10, 'status': 1},
+            {'subreddit': "CryptoCurrencies", 'recency': "hour", 'layers': 10, 'status': 1},
+            {'subreddit': "eos", 'recency': "hour", 'layers': 10, 'status': 1},
+            {'subreddit': "Monero", 'recency': "hour", 'layers': 10, 'status': 1},
+            {'subreddit': "Ripple", 'recency': "hour", 'layers': 10, 'status': 1},
         ]
     }, merge=True)
+
+
+if __name__ == '__main__':
+    update_db_reddit()

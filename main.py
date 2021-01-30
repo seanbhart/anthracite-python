@@ -3,10 +3,11 @@ import google.cloud.logging
 from google.cloud.logging_v2.handlers import CloudLoggingHandler
 from dotenv import load_dotenv
 
+from anthracite import ticker
 from reddit import reddit
 
 debug = False
-local = True
+local = False
 
 
 def db_populate():
@@ -15,9 +16,11 @@ def db_populate():
 
 
 def loop_reddit():
+    # Update the ticker list when the loop is manually reset
+    ticker_list = ticker.get_tickers()
     while True:
         logging.warning("REDDIT BREADTH START")
-        reddit.process_reddit_breadth()
+        reddit.process_reddit_breadth(ticker_list)
 
 
 def main():

@@ -1,3 +1,4 @@
+import logging
 from google.cloud import firestore
 from google.cloud import language_v1
 
@@ -24,6 +25,7 @@ def all_sentiment_analysis() -> None:
     docs = firestore_client.collection(settings.Firestore.collection_notion) \
         .where(u'magnitude', u'==', 0) \
         .get()
+    logging.info(f"(all_sentiment_analysis) FIREBASE READ NOTION DOC COUNT: {len(docs)}")
     for doc in docs:
         notion_dict = doc.to_dict()
         document = language_v1.Document(content=notion_dict['text'], type_=language_v1.Document.Type.PLAIN_TEXT)

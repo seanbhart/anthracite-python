@@ -53,6 +53,7 @@ def transform_tickers():
     docs = client.collection(settings.Firestore.collection_ticker) \
         .where(u'status', u'==', 0) \
         .get()
+    logging.info(f"(transform_tickers) FIREBASE READ TICKER DOC COUNT: {len(docs)}")
     for doc in docs:
         ticker_doc = client.collection(settings.Firestore.collection_ticker).document(doc.id)
         ticker_doc.set({
@@ -70,6 +71,7 @@ def filter_tickers():
     docs = client.collection(settings.Firestore.collection_ticker) \
         .where(u'status', u'==', 1) \
         .get()
+    logging.info(f"(filter_tickers) FIREBASE READ TICKER DOC COUNT: {len(docs)}")
     for doc in docs:
         ticker = Ticker(data=doc.to_dict())
         meaning = ticker_meaning(ticker)
@@ -93,6 +95,7 @@ def get_tickers() -> list:
     docs = client.collection(settings.Firestore.collection_ticker) \
         .where(u'status', u'>', 0) \
         .get()
+    logging.info(f"(get_tickers) FIREBASE READ TICKER DOC COUNT: {len(docs)}")
     tickers = []
     for doc in docs:
         tickers.append(Ticker(doc.to_dict()))
