@@ -63,7 +63,7 @@ gcloud functions deploy list_created \
 Setup a cron job to regularly run the script
 - List current cron jobs: `crontab -l`
 - Edit cron jobs: `crontab -e`
-- Run command every 10 mins: `*/10 * * * * <command>` eg: `*/10 * * * * /path/to/python /path/to/file/main.py > log.txt`
+- Run command every 10 mins: `*/10 * * * * <command>` eg: `*/10 * * * * /home/ubuntu/anthracite-python/.venv/bin/python /home/ubuntu/anthracite-python/main.py > /home/ubuntu/anthracite-python/local/log.txt`
 - Clear exited containers (will accumulate in storage otherwise): `docker rm -v $(docker ps -aq -f 'status=exited')`
 - Insert, save, quit: `i`, `:w`, `:q`
 - Check cron log: `cat /var/spool/mail/ec2-user`

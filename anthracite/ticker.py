@@ -110,10 +110,10 @@ def check_for_ticker(text: str, tickers: [Ticker]) -> [Ticker]:
     tickers_found = []
     for t in tickers:
         if t.status == 1:
-            if text.rfind(" " + t.ticker + " ") >= 0 or text.rfind("$" + t.ticker) >= 0:
+            if text.rfind(" " + t.ticker + " ") >= 0 or text.rfind("$" + t.ticker + " ") >= 0:
                 tickers_found.append(t)
         elif t.status == 2:
-            if text.rfind("$" + t.ticker) >= 0:
+            if text.rfind("$" + t.ticker + " ") >= 0:
                 tickers_found.append(t)
     if len(tickers_found) == 0:
         return None
