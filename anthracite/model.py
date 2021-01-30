@@ -1,5 +1,6 @@
 from google.cloud import firestore
 
+from db_local import db
 from language_analysis.language_analysis import sentiment_analysis
 from utils import settings
 
@@ -72,24 +73,23 @@ class Notion:
     def upload(self):
         """Upload a Notion to the db, but since it might already
         exist, query for the submission based on the stored id
-        the host passed for this data.
+        the host passed for this data. Use the local db to store
+        a record of existing Notions - reduce read requests to Firestore.
         """
-        client = firestore.Client()
+        # DO NOT update old data - this leads to unnecessary writes.
+        if not db.reddit_submission_exists(self.host_id):
+            # Store the submission in the local db first to prevent
+            # another thread from uploading this submission while
+            # it is still being processed (below).
+            db.reddit_insert(self.host_id)
 
-        # If the Notion already exists, update existing data,
-        # otherwise create a new Notion object.
-        docs = client.collection(settings.Firestore.collection_notion) \
-            .where(u'host', u'==', self.host) \
-            .where(u'host_id', u'==', self.host_id) \
-            .get()
-
-        # DO NOT update old data - this leads to unnecessary writes
-        if len(docs) == 0:
             # Run language analysis ONLY AFTER knowing this entry will be uploaded -
             # Google Natural Language analysis can get expensive.
             sentiment = sentiment_analysis(self.text)
             self.sentiment = sentiment.sentiment
             self.magnitude = sentiment.magnitude
+
+            client = firestore.Client()
             notion_doc_ref = client.collection(settings.Firestore.collection_notion).document()
 
             # Remove all None values from the dict before uploading

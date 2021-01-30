@@ -6,7 +6,18 @@ from dotenv import load_dotenv
 from reddit import reddit
 
 debug = False
-local = False
+local = True
+
+
+def db_populate():
+    from db_local import db
+    db.reddit_populate()
+
+
+def loop_reddit():
+    while True:
+        logging.warning("REDDIT BREADTH START")
+        reddit.process_reddit_breadth()
 
 
 def main():
@@ -14,7 +25,7 @@ def main():
         logging.warning("MAIN CALLED LOCAL")
     else:
         logging.warning("MAIN CALLED")
-    reddit.process_reddit_breadth()
+    loop_reddit()
 
 
 if __name__ == '__main__':

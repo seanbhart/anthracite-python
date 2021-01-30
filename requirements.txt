@@ -29,6 +29,7 @@ prawcore==1.5.0
 prompt-toolkit==3.0.14
 proto-plus==1.13.0
 protobuf==3.14.0
+psycopg2-binary==2.8.6
 pyasn1==0.4.8
 pyasn1-modules==0.2.8
 PyDictionary==2.0.1
