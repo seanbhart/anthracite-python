@@ -41,13 +41,13 @@ def process_subreddit_top_breadth(subreddit: str, recency: str, layers: int) -> 
     high quality posts faster. Depth requests (especially too deep) seem to
     bog down in low quality posts.
     """
-    logging.info(f"GET SUBREDDIT {subreddit} TOP POSTS BY BREADTH IN LAST {recency}")
+    logging.debug(f"GET SUBREDDIT {subreddit} TOP POSTS BY BREADTH IN LAST {recency}")
     ticker_list = ticker.get_tickers()
     try:
         for submission in get_top(subreddit=subreddit, recency=recency):
             # if submission.stickied:
             #     continue
-            logging.info(f"processing submission: {submission.id}")
+            logging.debug(f"processing submission: {submission.id}")
 
             # Reddit cannot serve too many comments
             if submission.num_comments > 90000:
@@ -80,7 +80,7 @@ def process_subreddit_top_depth(subreddit: str, recency: str, layers: int) -> No
     CAUTION: Sentiment analysis (especially Google Natural Language) can be expensive,
     and costs should be considered when deciding to aggregate statistics up comment layers.
     """
-    logging.info(f"GET SUBREDDIT {subreddit} TOP POSTS BY DEPTH IN LAST {recency}")
+    logging.debug(f"GET SUBREDDIT {subreddit} TOP POSTS BY DEPTH IN LAST {recency}")
     ticker_list = ticker.get_tickers()
     notions = []
     i = 0
@@ -109,7 +109,7 @@ def process_subreddit_top_depth(subreddit: str, recency: str, layers: int) -> No
             submission.comments.replace_more(limit=layers)
             for comment in submission.comments:
                 notion2 = notion_from_comment(comment.__dict__)
-                # logging.info(f"submission comment: {comment}")
+                # logging.debug(f"submission comment: {comment}")
                 notion_p2 = notion.process_notion(notion2, ticker_list)
                 if notion_p2:
                     notions.append(notion_p2)
@@ -123,7 +123,7 @@ def process_subreddit_top_depth(subreddit: str, recency: str, layers: int) -> No
             if notion_p and len(sentiment_all) > 1 and len(magnitude_all) > 1:
                 sentiment_adj = mean([notion_p.sentiment, mean(sentiment_all)])
                 magnitude_adj = mean([notion_p.magnitude, mean(magnitude_all)])
-                logging.info(f"NOTION: {notion_p.host_id}: S: {notion_p.sentiment}, M: {notion_p.magnitude} \
+                logging.debug(f"NOTION: {notion_p.host_id}: S: {notion_p.sentiment}, M: {notion_p.magnitude} \
                         --- S: {sentiment_adj}, M: {magnitude_adj} --- TEXT: {notion_p.text}")
             print(i)
             i += 1
@@ -136,5 +136,5 @@ def process_subreddit_top_depth(subreddit: str, recency: str, layers: int) -> No
 
 
 if __name__ == '__main__':
-    logging.info("reddit start")
+    logging.debug("reddit start")
     # load_dotenv(dotenv_path="../local/.env")

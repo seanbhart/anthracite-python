@@ -87,7 +87,7 @@ def get_replies_with_sentiment(comment, ticker_list) -> (list, list, float, floa
             elif len(magnitude_r1_all) > 1:
                 magnitude_r1_final = mean([notion_p.magnitude, mean(magnitude_r1_all)])
             magnitude_all.append(magnitude_r1_final)
-            logging.info(f"NOTION: {notion_p.host_id}: S: {notion_p.sentiment}, M: {notion_p.magnitude} --- S: {sentiment_r1_final}, M: {magnitude_r1_final} --- TEXT: {notion_p.text}")
+            logging.debug(f"NOTION: {notion_p.host_id}: S: {notion_p.sentiment}, M: {notion_p.magnitude} --- S: {sentiment_r1_final}, M: {magnitude_r1_final} --- TEXT: {notion_p.text}")
 
     sentiment_all_final = None
     if len(sentiment_all) == 1:
