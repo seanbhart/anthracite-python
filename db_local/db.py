@@ -46,6 +46,7 @@ def reddit_submission_exists(submission_host_id: str) -> bool:
         dbname=os.getenv("PSQL_DB"),
         user=os.getenv("PSQL_USER"),
         password=os.getenv("PSQL_PW"),
+        host='localhost'
     )
     sql = """
         SELECT id FROM reddit
@@ -74,7 +75,7 @@ def reddit_populate():
     # Get existing Notions from Firestore.
     client = firestore.Client()
     docs = client.collection(settings.Firestore.collection_notion) \
-        .where(u'host', u'==', 'reddit').limit(2000) \
+        .where(u'host', u'==', 'reddit') \
         .get()
     # Extract just the host's data id an add to a list
     ids = []

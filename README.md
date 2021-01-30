@@ -31,6 +31,33 @@ pyenv install 3.8.6
 pyenv global 3.8.6
 ```
 
+### Setup Postgresql database
+Install postgresql
+```
+sudo apt install postgresql postgresql-contrib
+sudo apt install postgresql-client-common
+```
+Activate the Python environment and install psycopg2
+```
+source .venv/bin/activate
+pip install psycopg2
+```
+Create the db and enter psql as default db admin
+```
+sudo -u postgres createdb gandalf
+sudo -u postgres psql
+```
+Create the table and set the default user `postgres` password
+<br>(NOTE: use single slash only)
+```
+\c gandalf
+CREATE TABLE reddit (id text PRIMARY KEY, timestamp timestamp default current_timestamp);
+\d reddit
+CREATE ROLE ubuntu LOGIN SUPERUSER PASSWORD 'new_password';
+ALTER USER postgres PASSWORD 'new_password';
+```
+Exit and add postgres credentials to the .env file 
+
 ### Install Chromedriver
 ```
 sudo apt-get install chromium-chromedriver
