@@ -27,6 +27,7 @@ def process_reddit_breadth() -> None:
                                           recency=subreddit['recency'],
                                           layers=subreddit['layers']
                                           )
+    logging.warning("REDDIT BREADTH COMPLETE")
 
 
 # BROKER_URL = 'redis://localhost:6379/0'
