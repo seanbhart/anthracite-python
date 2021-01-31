@@ -15,6 +15,11 @@ def db_populate():
     db.reddit_populate()
 
 
+def update_reddit_settings():
+    from utils import settings
+    settings.update_db_reddit()
+
+
 def loop_reddit():
     # Update the ticker list when the loop is manually reset
     ticker_list = ticker.get_tickers()
@@ -50,3 +55,4 @@ if __name__ == '__main__':
             logging.getLogger().setLevel(logging.WARNING)
 
     main()
+    # update_reddit_settings()

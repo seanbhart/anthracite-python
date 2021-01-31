@@ -30,7 +30,6 @@ def process_reddit_breadth(ticker_list: list) -> None:
                                           layers=subreddit['layers'],
                                           ticker_list=ticker_list
                                           )
-    logging.warning("REDDIT BREADTH COMPLETE")
 
 
 # BROKER_URL = 'redis://localhost:6379/0'
