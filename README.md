@@ -104,3 +104,11 @@ Setup a cron job to regularly run the script
 - Stop docker service: `sudo service docker stop`
 - Remove docker resources: `sudo rm -rf /var/lib/docker/`
 - Restart docker: `sudo service docker start`
+
+<br/>
+
+### Use screen to run in background:
+- Start new screen: `screen`
+- List detached screens: `screen -ls`
+- Reattach screen: `screen -r [screen name/id]`
+- Detach screen: `Ctrl+a d`
