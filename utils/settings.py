@@ -5,9 +5,12 @@ class Firestore:
     """Settings for Firestore connections or
     data structures.
     """
-    collection_ticker = "ticker"
-    collection_notion = "notion"
+    collection_casts = "casts"
     collection_host = "host"
+    collection_notion = "notion"
+    collection_ticker = "ticker"
+    collection_tickers = "tickers"
+    collection_settings = "settings"
 
 
 def update_db_reddit() -> None:
