@@ -5,7 +5,7 @@ other Google Cloud features.
 
 ## AWS Lightsail
 ```
-ssh ubuntu@54.160.8.248
+ssh -i ./local/default.pem ubuntu@54.160.8.248
 git clone https://github.com/seanbhart/anthracite-python.git
 cd anthracite-python/
 ```
