@@ -1,6 +1,7 @@
 import csv
 import logging
 import requests
+from requests.exceptions import HTTPError
 import time
 from google.cloud import firestore
 from PyDictionary import PyDictionary
@@ -171,64 +172,68 @@ def ticker_px_update():
     logging.info(f"(ticker_px_update) CASTS FOUND: {len(cast_docs)}")
 
     for exchange in exchanges:
+        # print(f"trying exchange: {exchange}")
         try:
             response = requests.get("https://financialmodelingprep.com/api/v3/quotes/" +
                                     exchange +
                                     "?apikey=3460e3ef780cb0935bcb32471a210dba")
-            if response.status_code == 200:
-                logging.info(f"(ticker_px_update) {exchange} TICKER COUNT: {len(response.json())}")
-                exchange_tickers = []
-                for t in response.json():
-                    t_data = {
-                        'symbol': t['symbol'],
-                        'name': t['name'],
-                        'price': t['price'],
-                        'volume': t['volume'],
-                        'timestamp': t['timestamp'],
-                    }
-                    exchange_tickers.append(t_data)
+            response.raise_for_status()
+            # print(f"exchange {exchange} response: {response.status_code}")
+            # logging.info(f"(ticker_px_update) {exchange} TICKER COUNT: {len(response.json())}")
 
-                    # Check whether the ticker is used in any active cast
-                    found_casts = filter(lambda x: x.to_dict()['ticker'] == t['symbol'], cast_docs)
-                    for cast in found_casts:
-                        cast_data = cast.to_dict()
-                        # print(f"found cast: {cast_data} while ticker price: {t['price']}")
-                        new_cast_data = None
-                        # found casts will be limit orders with status: 3=limit buy, 4=limit sell
-                        # Limit Buy orders execute if the price has dropped AT OR BELOW the target price
-                        if cast_data['type'] == 3 and t['price'] <= cast_data['price_target']:
-                            new_cast_data = {
-                                'status': 2,
-                                'executed': time.time() * 1000,
-                                'price_executed': t['price']
-                            }
+            exchange_tickers = []
+            for t in response.json():
+                t_data = {
+                    'symbol': t['symbol'],
+                    'name': t['name'],
+                    'price': t['price'],
+                    'volume': t['volume'],
+                    'timestamp': t['timestamp'],
+                }
+                exchange_tickers.append(t_data)
 
-                        # Limit Sell orders execute if the price has risen AT OR ABOVE the target price
-                        elif cast_data['type'] == 4 and t['price'] >= cast_data['price_target']:
-                            new_cast_data = {
-                                'status': 2,
-                                'executed': time.time() * 1000,
-                                'price_executed': t['price']
-                            }
+                # Check whether the ticker is used in any active cast
+                found_casts = filter(lambda x: x.to_dict()['ticker'] == t['symbol'], cast_docs)
+                for cast in found_casts:
+                    cast_data = cast.to_dict()
+                    # print(f"found cast: {cast_data} while ticker price: {t['price']}")
+                    new_cast_data = None
+                    # found casts will be limit orders with status: 3=limit buy, 4=limit sell
+                    # Limit Buy orders execute if the price has dropped AT OR BELOW the target price
+                    if cast_data['type'] == 3 and t['price'] <= cast_data['price_target']:
+                        new_cast_data = {
+                            'status': 2,
+                            'executed': time.time() * 1000,
+                            'price_executed': t['price']
+                        }
 
-                        if new_cast_data is not None:
-                            ticker_doc_ref = client.collection(settings.Firestore.collection_casts).document(cast.id)
-                            ticker_doc_ref.set(new_cast_data, merge=True)
+                    # Limit Sell orders execute if the price has risen AT OR ABOVE the target price
+                    elif cast_data['type'] == 4 and t['price'] >= cast_data['price_target']:
+                        new_cast_data = {
+                            'status': 2,
+                            'executed': time.time() * 1000,
+                            'price_executed': t['price']
+                        }
 
-                # print(len(exchange_tickers))
-                # print(exchange_tickers)
-                client.collection(settings.Firestore.collection_tickers)\
-                    .document(exchange)\
-                    .set({
-                        'all': exchange_tickers,
-                        'status': 1,
-                    })
+                    if new_cast_data is not None:
+                        ticker_doc_ref = client.collection(settings.Firestore.collection_casts).document(cast.id)
+                        ticker_doc_ref.set(new_cast_data, merge=True)
 
-            else:
-                logging.error(f"(ticker_px_update) EXCHANGE NOT FOUND: {exchange}")
-                continue
-        except Exception:
-            logging.error(f"(ticker_px_update) ERROR: {Exception}")
+            # print(len(exchange_tickers))
+            client.collection(settings.Firestore.collection_tickers)\
+                .document(exchange)\
+                .set({
+                    'all': exchange_tickers,
+                    'status': 1,
+                })
+
+        except HTTPError as http_err:
+            print(f'HTTP error occurred: {http_err}')  # Python 3.6
+            logging.error(f"(ticker_px_update) HTTP ERROR: {Exception}")
+            continue
+        except Exception as err:
+            print(f'Other error occurred: {err}')  # Python 3.6
+            logging.error(f"(ticker_px_update) UNKNOWN ERROR: {Exception}")
             continue
 
 
