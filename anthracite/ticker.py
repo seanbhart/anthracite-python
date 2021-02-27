@@ -228,12 +228,12 @@ def ticker_px_update():
                 })
 
         except HTTPError as http_err:
-            print(f'HTTP error occurred: {http_err}')  # Python 3.6
-            logging.error(f"(ticker_px_update) HTTP ERROR: {Exception}")
+            # print(f'HTTP error occurred: {http_err}')
+            logging.error(f"(ticker_px_update) HTTP ERROR: {http_err}")
             continue
         except Exception as err:
-            print(f'Other error occurred: {err}')  # Python 3.6
-            logging.error(f"(ticker_px_update) UNKNOWN ERROR: {Exception}")
+            # print(f'Other error occurred: {err}')
+            logging.error(f"(ticker_px_update) UNKNOWN ERROR: {err}")
             continue
 
 
