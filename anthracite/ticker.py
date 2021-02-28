@@ -1,4 +1,5 @@
 import csv
+import datetime
 import logging
 import requests
 from requests.exceptions import HTTPError
@@ -152,16 +153,14 @@ def ticker_px_update():
     tickers (in one document) to avoid high read/write
     counts in firestore.
     """
-    exchanges = ["nyse",
-                 "nasdaq",
-                 "amex",
-                 # "euronex",
-                 # "tsx",
-                 # "index",
-                 # "etf",
-                 # "mutual_fund",
-                 # "forex",
-                 "crypto"]
+
+    # Only run an update on crypto prices unless within
+    # NYSE weekday trading times.
+    exchanges = ["crypto"]
+    utc_day = datetime.datetime.utcnow().date().weekday()
+    utc_hour = datetime.datetime.utcnow().hour
+    if utc_day > 4 or utc_hour < 14 or utc_hour > 21:
+        exchanges.extend(["nyse", "nasdaq", "amex"])
 
     client = firestore.Client()
     # Get all pending casts to process while updating prices
@@ -169,7 +168,7 @@ def ticker_px_update():
     cast_docs = client.collection(settings.Firestore.collection_casts) \
         .where(u'status', u'==', 1) \
         .get()
-    logging.info(f"(ticker_px_update) CASTS FOUND: {len(cast_docs)}")
+    logging.info(f"(ticker_px_update) PENDING CASTS FOUND: {len(cast_docs)}")
 
     for exchange in exchanges:
         # print(f"trying exchange: {exchange}")
@@ -244,7 +243,6 @@ if __name__ == '__main__':
     # fill_settings_tickers()
     # transform_tickers()
 
-    import time
     while True:
         ticker_px_update()
         time.sleep(5)
