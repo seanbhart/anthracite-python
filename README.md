@@ -112,3 +112,4 @@ Setup a cron job to regularly run the script
 - List detached screens: `screen -ls`
 - Reattach screen: `screen -r [screen name/id]`
 - Detach screen: `Ctrl+a d`
+- Kill screen: `screen -XS [screen name/id] quit`

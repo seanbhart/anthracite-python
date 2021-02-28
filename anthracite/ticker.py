@@ -157,9 +157,12 @@ def ticker_px_update():
     # Only run an update on crypto prices unless within
     # NYSE weekday trading times.
     exchanges = ["crypto"]
+    nyse_open = True
     utc_day = datetime.datetime.utcnow().date().weekday()
     utc_hour = datetime.datetime.utcnow().hour
     if utc_day > 4 or utc_hour < 14 or utc_hour > 21:
+        nyse_open = False
+    if nyse_open:
         exchanges.extend(["nyse", "nasdaq", "amex"])
 
     client = firestore.Client()
